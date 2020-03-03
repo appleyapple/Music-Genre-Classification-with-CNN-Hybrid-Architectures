@@ -1,8 +1,9 @@
 #! /usr/env/python3
 
-import conversion
-import spect_create
-import data_csv_gen
+from Data_Processing import conversion
+from Data_Processing import spect_create
+from Data_Processing import data_csv_gen
+from Data_Processing import utils
 
 #number of files you want to convert to .wav, this
 #also affects the number of spectrograms you create

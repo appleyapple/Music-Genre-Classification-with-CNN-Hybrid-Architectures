@@ -5,7 +5,7 @@
 import os
 import librosa
 
-import utils  
+from Data_Processing import utils  
 import subprocess
 
 def mp3_Convert(num_files_to_convert):
