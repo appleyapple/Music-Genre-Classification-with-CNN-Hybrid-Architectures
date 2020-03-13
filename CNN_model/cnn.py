@@ -17,6 +17,17 @@ BATCH_SIZE_TEST = 4
 N_CATEGORIES = 8
 IMAGE_SIZE = (64, 64)  # Also change Conv2d_1
 
+N_CATEGORIES = 8
+BATCH_SIZE_TRAIN = 32
+BATCH_SIZE_TEST = 32
+INPUT_SHAPE = (256, 256, 3)  # x, y, color channels
+IMAGE_SIZE = (256, 256)
+KERNAL_SIZE = (3, 3)
+POOL = (2, 2)
+ACTIVATION = 'relu'
+NUM_CONV_LAYERS = 3
+FILTERS = [32, 64, 64, 128]
+
 # Data flow [img_name, genre]
 traindf = pd.read_csv('./Data/train.csv',
                       names=["ID", "Class"], dtype=str)
@@ -63,31 +74,21 @@ valid_generator = datagen.flow_from_dataframe(
 
 model = Sequential()
 
-model.add(Conv2D(32, (3, 3), padding='same',
-                 input_shape=(64, 64, 3)))  # IMAGE_SIZE
-model.add(Activation('relu'))
-model.add(Conv2D(64, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(FILTERS[0], KERNAL_SIZE, padding='same',
+                 input_shape=INPUT_SHAPE))
+model.add(Activation(ACTIVATION))
+model.add(MaxPooling2D(pool_size=POOL))
 model.add(Dropout(0.25))
 
-model.add(Conv2D(64, (3, 3), padding='same'))
-model.add(Activation('relu'))
-model.add(Conv2D(64, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Conv2D(128, (3, 3), padding='same'))
-model.add(Activation('relu'))
-model.add(Conv2D(128, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
+for layer in range(NUM_CONV_LAYERS - 1):
+    model.add(Conv2D(FILTERS[layer + 1], KERNAL_SIZE, padding='same'))
+    model.add(Activation(ACTIVATION))
+    model.add(MaxPooling2D(pool_size=POOL))
+    model.add(Dropout(0.5))
 
 model.add(Flatten())
 model.add(Dense(512))
-model.add(Activation('relu'))
+model.add(Activation(ACTIVATION))
 model.add(Dropout(0.5))
 model.add(Dense(N_CATEGORIES, activation='softmax'))
 
