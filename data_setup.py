@@ -10,12 +10,14 @@ from Data_Processing import utils
 #also affects the number of spectrograms you create
 FILES_TO_GENERATE = 50
 SONG_DURATION = 30
-SPECTROGRAM_WIDTH = 0.72 #in inches
-SPECTROGRAM_HEIGHT = 0.72 #in inches
-SPECTROGRAM_DPI = 400
+SPECTROGRAM_WIDTH = 3 #in inches
+SPECTROGRAM_HEIGHT = 3 #in inches
+SPECTROGRAM_DPI = 500
 SONG_SAMPLING_RATE = 16000
 
 print("Beginning Setup")
+
+shutil.rmtree("./Data/")
 conversion.mp3_Convert(FILES_TO_GENERATE)
 
 spect_create.Spectrogram_Create(SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT,

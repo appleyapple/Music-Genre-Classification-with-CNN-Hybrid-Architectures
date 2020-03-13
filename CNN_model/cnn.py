@@ -12,11 +12,6 @@ def append_ext(fn):
     return fn + ".jpg"
 
 
-BATCH_SIZE_TRAIN = 4
-BATCH_SIZE_TEST = 4
-N_CATEGORIES = 8
-IMAGE_SIZE = (64, 64)  # Also change Conv2d_1
-
 N_CATEGORIES = 8
 BATCH_SIZE_TRAIN = 32
 BATCH_SIZE_TEST = 32
