@@ -8,15 +8,19 @@ from Data_Processing import utils
 
 #number of files you want to convert to .wav, this
 #also affects the number of spectrograms you create
-FILES_TO_GENERATE = 10
+FILES_TO_GENERATE = 50
 SONG_DURATION = 30
 SPECTROGRAM_WIDTH = 0.72 #in inches
 SPECTROGRAM_HEIGHT = 0.72 #in inches
 SPECTROGRAM_DPI = 400
+SONG_SAMPLING_RATE = 16000
 
 print("Beginning Setup")
 conversion.mp3_Convert(FILES_TO_GENERATE)
-spect_create.Spectrogram_Create()
+
+spect_create.Spectrogram_Create(SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT,
+                                SPECTROGRAM_DPI, SONG_DURATION, SONG_SAMPLING_RATE)
+
 data_csv_gen.Generate_CSV()
 
 print("Removing Samples Folder")

@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 from matplotlib import figure
 
 
-def create_spectrogram(filename, id, folder):
+def create_spectrogram(filename, id, folder, WIDTH, HEIGHT, DPI, SONG_DURATION, SR):
     plt.interactive(False)
-    clip, sample_rate = librosa.load(filename, sr = None)
-    fig = plt.figure(figsize=[0.72, 0.72], dpi=400)
+    clip, sample_rate = librosa.load(filename, sr = SR, duration = SONG_DURATION)
+    fig = plt.figure(figsize=[WIDTH, HEIGHT], dpi=DPI)
     ax = fig.add_subplot(111)
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)
@@ -41,7 +41,7 @@ def create_spectrogram(filename, id, folder):
     plt.close('all')
     del filename,clip,sample_rate,fig,ax,S
 
-def Spectrogram_Create():
+def Spectrogram_Create(WIDTH, HEIGHT, DPI, SONG_DURATION, SR):
     tracks = utils.load('./fma_metadata/tracks.csv')
 
     #Spectrograph training/validation/test set
@@ -81,9 +81,11 @@ def Spectrogram_Create():
                 id = name[0]
 
                 if(tracks['set', 'split'][int(id)] == "test"):
-                    create_spectrogram(full_path, id, "test")
+                    create_spectrogram(full_path, id, "test", 
+                                        WIDTH, HEIGHT, DPI, SONG_DURATION, SR)
                 else:
-                    create_spectrogram(full_path, id, "train")
+                    create_spectrogram(full_path, id, "train",
+                                        WIDTH, HEIGHT, DPI, SONG_DURATION, SR)
 
             print("Finished creating spectrograms for {} genre".format(path_list[2]))
     
