@@ -89,6 +89,17 @@ def Spectrogram_Create():
     
     gc.collect()
 
+
+
+
+
+
+
+
+
+
+
+
 #Organized storage of spectrograms
 # try:
 #     os.mkdir('Spectrogram')

@@ -12,15 +12,15 @@ def append_ext(fn):
     return fn+".jpg"
 
 
-BATCH_SIZE_TRAIN = 64
-BATCH_SIZE_TEST = 64
+BATCH_SIZE_TRAIN = 4
+BATCH_SIZE_TEST = 4
 N_CATEGORIES = 8
 IMAGE_SIZE = (128, 128)
 
 # Data flow [img_name, genre]
-traindf = pd.read_csv('./data_set/train.csv',
+traindf = pd.read_csv('./Data/train.csv',
                       names=["ID", "Class"], dtype=str)
-testdf = pd.read_csv('./data_set/test.csv',
+testdf = pd.read_csv('./Data/test.csv',
                      names=["ID", "Class"], dtype=str)
 
 # Appending jpg to end of img_name
@@ -32,7 +32,7 @@ datagen = ImageDataGenerator(rescale=1./255., validation_split=0.25)
 # Train generator to feed training data to CNN
 train_generator = datagen.flow_from_dataframe(
     dataframe=traindf,
-    directory="./data_set/Train/",
+    directory="./Data/Train/",
     x_col="ID",
     y_col="Class",
     subset="training",
@@ -45,7 +45,7 @@ train_generator = datagen.flow_from_dataframe(
 # Validation generator to feed validation data to CNN
 valid_generator = datagen.flow_from_dataframe(
     dataframe=traindf,
-    directory="./data_set/Train/",
+    directory="./Data/Train/",
     x_col="ID",
     y_col="Class",
     subset="validation",
@@ -105,7 +105,7 @@ model.fit_generator(generator=train_generator,
                     steps_per_epoch=STEP_SIZE_TRAIN,
                     validation_data=valid_generator,
                     validation_steps=STEP_SIZE_VALID,
-                    epochs=100
+                    epochs=10
                     )
 model.evaluate_generator(generator=valid_generator, steps=STEP_SIZE_VALID)
 
@@ -116,7 +116,7 @@ model.evaluate_generator(generator=valid_generator, steps=STEP_SIZE_VALID)
 test_datagen = ImageDataGenerator(rescale=1./255.)
 test_generator = test_datagen.flow_from_dataframe(
     dataframe=testdf,
-    directory="./data_set/Test/",
+    directory="./Data/Test/",
     x_col="ID",
     y_col="Class",
     batch_size=BATCH_SIZE_TEST,
