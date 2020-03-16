@@ -6,3 +6,7 @@
 test.py
 __pycache__/
 setup.env
+best_model.h5
+log.csv
+model.h5
+/SavedModels
