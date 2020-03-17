@@ -83,7 +83,7 @@ def build_model():
 
 def build_parallel_model():
     N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 4
+    BATCH_SIZE_TRAIN = 1
     BATCH_SIZE_TEST = 1
     INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
     IMAGE_SIZE = (128, 128)
@@ -107,9 +107,11 @@ def build_parallel_model():
     L1 = Input(shape=INPUT_SHAPE, name="input")
 
     # Visible layers
-    L2 = Conv2D(FILTERS[0], KERNAL_SIZE[0], padding='same')(L1)
+    L2 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
+                padding='same', activation=ACTIVATION)(L1)
     L3 = Dropout(0.2)(L2)
-    L4 = Conv2D(FILTERS[1], KERNAL_SIZE[1], padding='same')(L3)
+    L4 = Conv2D(FILTERS[1], KERNAL_SIZE[1],
+                padding='same', activation=ACTIVATION)(L3)
 
     # Hidden 1
     H1_1 = MaxPooling2D(pool_size=POOL[0])(L3)
@@ -118,11 +120,13 @@ def build_parallel_model():
     H2_1 = AveragePooling2D(pool_size=POOL[0])(L4)
 
     # Hidden 3
-    H3_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0], padding='same')(L4)
+    H3_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
+                  padding='same', activation=ACTIVATION)(L4)
     H3_2 = MaxPooling2D(pool_size=POOL[0])(H3_1)
 
     # Hidden 4
-    H4_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0], padding='same')(L4)
+    H4_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
+                  padding='same', activation=ACTIVATION)(L4)
     H4_2 = AveragePooling2D(pool_size=POOL[0])(H4_1)
 
     # Concatenate and flatten layer for dense layer
@@ -130,14 +134,12 @@ def build_parallel_model():
     flattened = Flatten()(concat)
 
     # Output layer
-    L5 = Dense(256)(flattened)
-    L6 = Dense(64)(L5)
+    L5 = Dense(256, activation=ACTIVATION)(flattened)
+    L6 = Dense(64, activation=ACTIVATION)(L5)
     L7 = Dropout(0.1)(L6)
-    L8 = Dense(8)(L7)
+    L8 = Dense(8, activation='softmax')(L7)
 
-    # L10 = Activation("softmax")(L9)
-
-    model = Model(inputs=L1, outputs=L5)
+    model = Model(inputs=L1, outputs=L8)
 
     model.compile(optimizers.Adam(),
                   loss="categorical_crossentropy", metrics=["accuracy"])
