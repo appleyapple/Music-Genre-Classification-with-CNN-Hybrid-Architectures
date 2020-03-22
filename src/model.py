@@ -3,8 +3,10 @@ from keras.optimizers import Adam
 from keras.models import Sequential, Model
 from keras.layers import Input, Bidirectional, Dense, Activation, Flatten, Dropout, BatchNormalization, Reshape, Permute, concatenate
 from keras.layers import Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AveragePooling1D, AveragePooling2D
-from keras_preprocessing.image import ImageDataGenerator
+from keras.layers import Lambda
 from keras.layers.recurrent import GRU, LSTM
+from keras_preprocessing.image import ImageDataGenerator
+import keras.backend as K
 
 
 def build_model():
@@ -197,29 +199,27 @@ def build_crnn_model():
     H4_2 = AveragePooling2D(pool_size=POOL[0])(H4_1)
 
     # Concatenate parallel hidden layers
-    concat = concatenate([H1_1, H2_1, H3_2, H4_2])
+    concat = concatenate([H1_1, H2_1, H3_2, H4_2]) # (None, 64, 64, 160)
 
     # Reshape for recurrent layer
-    # (frequency, time, channels) --> (time, frequency, channel)
-    # model.add(Permute((time_axis, frequency_axis, channel_axis)))
-    # resize_shape = model.output_shape[2] * model.output_shape[3]
-    # model.add(Reshape((model.output_shape[1], resize_shape)))
-    resize_shape = model.output_shape[2] * model.output_shape[3]
+
+    # resize_shape = concat.output_shape[2] * concat.output_shape[3]
     R1 = Permute((time_axis, frequency_axis, channel_axis))(concat)
-    R2 = Reshape((model.output_shape[1], resize_shape))(R1)
+    # R2 = Reshape((concat.output_shape[1], resize_shape))(R1)
+    R2 = Reshape((64, 64*160))(R1)
+
+    # squeezed = Lambda(lambda x: K.squeeze(x, 64))(concat)
 
     # Recurrent layer
-    # model.add(LSTM(32, return_sequences=True, dropout=0.3))
-    # model.add(LSTM(32, return_sequences=False, dropout=0.3))
-    # model.add(Dropout(0.1))
     R3 = LSTM(32, return_sequences=True, dropout=0.3)(R2)
     R4 = LSTM(32, return_sequences=False, dropout=0.3)(R3)
+    R5 = Dropout(0.1)(R4)
 
-    # Flatten layer for dense layer
-    flattened = Flatten()(R4)
+    # # Flatten layer for dense layer
+    # flattened = Flatten()(R5)
 
     # Output layer
-    L5 = Dense(32, activation=ACTIVATION)(flattened)
+    L5 = Dense(32, activation=ACTIVATION)(R5)
     L6 = Dense(16, activation=ACTIVATION)(L5)
     L7 = Dropout(0.5)(L6)
     L8 = Dense(8, activation='softmax')(L7)
