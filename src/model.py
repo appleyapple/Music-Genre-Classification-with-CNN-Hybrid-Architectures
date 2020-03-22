@@ -204,11 +204,10 @@ def build_crnn_model():
     # Reshape for recurrent layer
 
     # resize_shape = concat.output_shape[2] * concat.output_shape[3]
+    shape = concat.get_shape()
     R1 = Permute((time_axis, frequency_axis, channel_axis))(concat)
     # R2 = Reshape((concat.output_shape[1], resize_shape))(R1)
-    R2 = Reshape((64, 64*160))(R1)
-
-    # squeezed = Lambda(lambda x: K.squeeze(x, 64))(concat)
+    R2 = Reshape((shape[1], shape[2]*shape[3]))(R1)
 
     # Recurrent layer
     R3 = LSTM(32, return_sequences=True, dropout=0.3)(R2)
