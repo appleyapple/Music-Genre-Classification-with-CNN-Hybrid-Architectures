@@ -2,39 +2,38 @@ from keras.callbacks import CSVLogger, EarlyStopping, ModelCheckpoint
 from src import clr_callback as clr
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-
+import gc
 import pandas as pd
 import numpy as np
 
 from src import model
 from src import load_data_generators
 
-EPOCHS = 1000
+EPOCHS = 200
 
 def train():
-
     train, validation, test = load_data_generators.load_data_gen()
 
     #Change the function call for other models in the file
-    crnn_model = model.build_model()
+    crnn_model = model.build_crnn_model()
     
     csv_logger = CSVLogger('log.csv', append=False, separator=';')
 
     STEP_SIZE_TRAIN = train.n // train.batch_size
     STEP_SIZE_VALID = validation.n // validation.batch_size
     
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=300)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
     mc = ModelCheckpoint('best_model.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
     
     #Cyclic Learning Rate https://github.com/bckenstler/CLR
-    clr_method = clr.CyclicLR(mode='triangular', base_lr=0.001, max_lr= 0.036, step_size= (4*STEP_SIZE_TRAIN))
+    clr_method = clr.CyclicLR(mode = 'triangular', base_lr=0.0026, max_lr= 0.007, step_size= (4*STEP_SIZE_TRAIN))
     
     crnn_model.fit_generator(generator=train,
                     steps_per_epoch=STEP_SIZE_TRAIN,
                     validation_data=validation,
                     validation_steps=STEP_SIZE_VALID,
                     epochs=EPOCHS,
-                    callbacks=[csv_logger, mc, es, clr_method]
+                    callbacks=[csv_logger, mc, es]
                     )
     
     return crnn_model, test
