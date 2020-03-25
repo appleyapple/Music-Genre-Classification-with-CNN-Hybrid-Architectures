@@ -3,6 +3,7 @@ from src import clr_callback as clr
 import keras
 import pandas as pd
 import numpy as np
+from keras.models import Sequential, Model, load_model
 
 from src import model
 from src import load_data_generators
@@ -20,7 +21,7 @@ BEST_MODEL_FILENAME = "./best_model.h5"
 def train_more():
     train, validation, test = load_data_generators.load_data_gen()
     csv_logger = CSVLogger('log_trainedmore.csv', append=False, separator=';')
-    crnn_model = model.build_model()
+    crnn_model = load_model(BEST_MODEL_FILENAME)
 
     # Train and validate model
     STEP_SIZE_TRAIN = train.n // train.batch_size
