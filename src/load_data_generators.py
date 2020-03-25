@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 from keras_preprocessing.image import ImageDataGenerator
 
-BATCH_SIZE_TRAIN = 16
-BATCH_SIZE_TEST = 1
+BATCH_SIZE_TRAIN = 64
+BATCH_SIZE_VALIDATE = 4
+BATCH_SIZE_TEST = 4
 
-IMAGE_SIZE = (256, 256)
-VALDATION_SPLIT = 0.25
+IMAGE_SIZE = (128, 128)
+VALDATION_SPLIT = 0.15
 
 def append_ext(fn):
     return fn+".jpg"
@@ -22,7 +23,7 @@ def load_train_gen(traindf):
         y_col="Class",
         subset="training",
         batch_size=BATCH_SIZE_TRAIN,
-        seed=52,
+        seed=12412,
         shuffle=True,
         class_mode="categorical",
         target_size=IMAGE_SIZE)
@@ -34,8 +35,8 @@ def load_train_gen(traindf):
         x_col="ID",
         y_col="Class",
         subset="validation",
-        batch_size=BATCH_SIZE_TRAIN,
-        seed=52,
+        batch_size=BATCH_SIZE_VALIDATE,
+        seed=1232,
         shuffle=True,
         class_mode="categorical",
         target_size=IMAGE_SIZE)
