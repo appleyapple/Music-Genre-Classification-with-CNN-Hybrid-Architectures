@@ -3,25 +3,22 @@ from keras.optimizers import Adam
 from keras.models import Sequential, Model
 from keras.layers import Input, Bidirectional, Dense, Activation, Flatten, Dropout, BatchNormalization, Reshape, Permute, concatenate
 from keras.layers import Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AveragePooling1D, AveragePooling2D
-from keras.layers import Lambda
-from keras.layers.recurrent import GRU, LSTM
 from keras_preprocessing.image import ImageDataGenerator
-import keras.backend as K
+from keras.layers.recurrent import GRU, LSTM
+from keras import applications
 
 
 def build_model():
     N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 16
-    BATCH_SIZE_TEST = 1
-    INPUT_SHAPE = (256, 256, 3)  # x, y, color channels
-    IMAGE_SIZE = (256, 256)
-    KERNAL_SIZE = [(7, 7), (5, 5), (4, 4), (4, 4), (4, 2),
-                   (2, 4), (3, 3), (3, 3), (3, 3)]
-    POOL = [(2, 2), (2, 2), (2, 2), (2, 2), (2, 2),
-            (2, 2), (2, 2), (2, 2), (2, 2)]
+    BATCH_SIZE_TRAIN = 32
+    BATCH_SIZE_TEST = 4
+    INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
+    IMAGE_SIZE = (128, 128)
+    KERNAL_SIZE = [(3,3), (3,3), (3,3), (3, 3), (3,3), (3,3), (2,2)]
+    POOL = [(2, 2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2)]
     ACTIVATION = 'relu'
-    NUM_CONV_LAYERS = 4
-    FILTERS = [32, 64, 64, 128, 128, 256, 256]
+    NUM_CONV_LAYERS = 3
+    FILTERS = [32, 64, 64, 32, 64, 128, 512]
     frequency_axis = 1
     time_axis = 2
     channel_axis = 3
@@ -32,26 +29,26 @@ def build_model():
 
     # First convolution layer specifies shape
     model.add(Conv2D(FILTERS[0], KERNAL_SIZE[0], padding='same',
-                     input_shape=INPUT_SHAPE))
-    model.add(MaxPooling2D(pool_size=POOL[0]))
+                    input_shape=INPUT_SHAPE, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.02)))
+    model.add(BatchNormalization())
     model.add(Activation(ACTIVATION))
-    model.add(BatchNormalization(axis=channel_axis))
+
+    model.add(MaxPooling2D(pool_size=POOL[0]))
+   
 
     # model.add(Dropout(0.2))
 
     # Add more convolutional layers
     for layer in range(NUM_CONV_LAYERS - 1):
-        num = 1
-        model.add(Conv2D(FILTERS[layer + 1], KERNAL_SIZE[num], padding='same'))
-        # model.add(BatchNormalization(axis=channel_axis))
-        model.add(MaxPooling2D(pool_size=POOL[num]))
+
+        model.add(Conv2D(FILTERS[layer + 1], KERNAL_SIZE[layer + 1], 
+                    padding='same', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(BatchNormalization())
         model.add(Activation(ACTIVATION))
 
-        num = num + 1
-        model.add(Dropout(0.3))
+        model.add(MaxPooling2D(pool_size=POOL[layer + 1]))
 
-    model.add(BatchNormalization(axis=channel_axis))
-
+    
     # Reshaping input for recurrent layer
     # (frequency, time, channels) --> (time, frequency, channel)
     model.add(Permute((time_axis, frequency_axis, channel_axis)))
@@ -59,33 +56,39 @@ def build_model():
     model.add(Reshape((model.output_shape[1], resize_shape)))
 
     # recurrent layer
-    model.add(LSTM(32, return_sequences=True, dropout=0.3))
-    model.add(LSTM(32, return_sequences=False, dropout=0.3))
-    # model.add(Dropout(0.1))
+    model.add(GRU(256, return_sequences=True, dropout = 0.3))
+    model.add(GRU(256, return_sequences=False, dropout = 0.3))
+    model.add(Dropout(0.5))
 
     # Output layer
     # model.add(Flatten())
-    # model.add(Dense(512, kernel_regularizer=regularizers.l2(0.001),
+    # model.add(Dense(512, kernel_regularizer=regularizers.l2(0.001), 
     #                     activity_regularizer=regularizers.l1(0.001)))
+    model.add(BatchNormalization())
+    model.add(Dense(128, activation=ACTIVATION))
+    model.add(Dense(128, activation=ACTIVATION))
+    model.add(Dense(64, activation=ACTIVATION))
+    model.add(Dense(32, activation=ACTIVATION))
+    model.add(Dense(16, activation=ACTIVATION))
+    model.add(Dropout(0.2))
 
-    # model.add(Dropout(0.3))
-    # model.add(Dense(128, activation=ACTIVATION))
     model.add(Dense(8))
     # model.add(BatchNormalization())
     model.add(Activation("softmax"))
     #model.add(Dense(N_CATEGORIES, activation='softmax'))
     # optimizers.rmsprop(lr=0.001, decay=1e-6)
     # Adam(lr=0.001, beta_1=0.5, beta_2=0.999)
-    model.compile(optimizers.Adam(),
-                  loss="categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizers.Adadelta(),
+                loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
+    
     return model
 
-
+#https://www.isca-speech.org/archive/Interspeech_2019/pdfs/1298.pdf
 def build_parallel_model():
     N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 1
+    BATCH_SIZE_TRAIN = 8
     BATCH_SIZE_TEST = 1
     INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
     IMAGE_SIZE = (128, 128)
@@ -95,7 +98,7 @@ def build_parallel_model():
             (2, 2), (2, 2), (2, 2), (2, 2)]
     ACTIVATION = 'relu'
     NUM_CONV_LAYERS = 4
-    FILTERS = [32, 64, 64, 128, 128, 256, 256]
+    FILTERS = [8, 16, 32, 64, 128, 256, 256]
     frequency_axis = 1
     time_axis = 2
     channel_axis = 3
@@ -110,35 +113,35 @@ def build_parallel_model():
 
     # Visible layers
     L2 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                padding='same', activation=ACTIVATION)(L1)
-    L3 = Dropout(0.5)(L2)
-    L4 = Conv2D(FILTERS[1], KERNAL_SIZE[1],
-                padding='same', activation=ACTIVATION)(L3)
+                padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.02))(L1)
+    L3 = Dropout(0.2)(L2)
+    L4 = Conv2D(FILTERS[0], KERNAL_SIZE[1],
+                padding='same', activation=ACTIVATION , kernel_regularizer=regularizers.l2(0.01))(L3)
 
     # Hidden 1
-    H1_1 = MaxPooling2D(pool_size=POOL[0])(L3)
+    H1_1 = MaxPooling2D(pool_size=POOL[0], strides=(2, 2))(L3)
 
     # Hidden 2
-    H2_1 = AveragePooling2D(pool_size=POOL[0])(L4)
+    H2_1 = AveragePooling2D(pool_size=POOL[0], strides=(2, 2))(L4)
 
     # Hidden 3
     H3_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                  padding='same', activation=ACTIVATION)(L4)
-    H3_2 = MaxPooling2D(pool_size=POOL[0])(H3_1)
+                  padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.01))(L4)
+    H3_2 = MaxPooling2D(pool_size=POOL[0], strides=(2, 2))(H3_1)
 
     # Hidden 4
-    H4_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                  padding='same', activation=ACTIVATION)(L4)
-    H4_2 = AveragePooling2D(pool_size=POOL[0])(H4_1)
+    H4_1 = Conv2D(FILTERS[2], KERNAL_SIZE[0],
+                  padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.01))(L4)
+    H4_2 = AveragePooling2D(pool_size=POOL[0], strides=(2, 2))(H4_1)
 
     # Concatenate and flatten layer for dense layer
     concat = concatenate([H1_1, H2_1, H3_2, H4_2])
     flattened = Flatten()(concat)
 
     # Output layer
-    L5 = Dense(32, activation=ACTIVATION)(flattened)
-    L6 = Dense(16, activation=ACTIVATION)(L5)
-    L7 = Dropout(0.5)(L6)
+    L5 = Dense(128, activation=ACTIVATION)(flattened)
+    L6 = Dense(32, activation=ACTIVATION)(L5)
+    L7 = Dropout(0.1)(L6)
     L8 = Dense(8, activation='softmax')(L7)
 
     model = Model(inputs=L1, outputs=L8)
@@ -150,19 +153,19 @@ def build_parallel_model():
     return model
 
 
+
 def build_crnn_model():
     N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 1
-    BATCH_SIZE_TEST = 1
+    BATCH_SIZE_TRAIN = 32
+    BATCH_SIZE_TEST = 8
     INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
     IMAGE_SIZE = (128, 128)
-    KERNAL_SIZE = [(7, 7), (5, 5), (4, 4), (4, 4), (4, 2),
+    KERNAL_SIZE = [(3, 3), (5, 5), (7, 7), (4, 4), (4, 2),
                    (2, 4), (3, 3), (3, 3), (3, 3)]
     POOL = [(2, 2), (2, 2), (2, 2), (2, 2), (2, 2),
             (2, 2), (2, 2), (2, 2), (2, 2)]
     ACTIVATION = 'relu'
-    NUM_CONV_LAYERS = 4
-    FILTERS = [32, 64, 64, 128, 128, 256, 256]
+    FILTERS = [4, 16, 16, 32, 128, 256, 256]
     frequency_axis = 1
     time_axis = 2
     channel_axis = 3
@@ -177,10 +180,10 @@ def build_crnn_model():
 
     # Visible layers
     L2 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                padding='same', activation=ACTIVATION)(L1)
-    L3 = Dropout(0.5)(L2)
-    L4 = Conv2D(FILTERS[1], KERNAL_SIZE[1],
-                padding='same', activation=ACTIVATION)(L3)
+                padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.02))(L1)
+    L3 = Dropout(0.2)(L2)
+    L4 = Conv2D(FILTERS[0], KERNAL_SIZE[1],
+                padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.01))(L3)
 
     # Hidden 1
     H1_1 = MaxPooling2D(pool_size=POOL[0])(L3)
@@ -189,13 +192,13 @@ def build_crnn_model():
     H2_1 = AveragePooling2D(pool_size=POOL[0])(L4)
 
     # Hidden 3
-    H3_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                  padding='same', activation=ACTIVATION)(L4)
+    H3_1 = Conv2D(FILTERS[1], KERNAL_SIZE[2],
+                  padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.01))(L4)
     H3_2 = MaxPooling2D(pool_size=POOL[0])(H3_1)
 
     # Hidden 4
-    H4_1 = Conv2D(FILTERS[0], KERNAL_SIZE[0],
-                  padding='same', activation=ACTIVATION)(L4)
+    H4_1 = Conv2D(FILTERS[1], KERNAL_SIZE[2],
+                  padding='same', activation=ACTIVATION, kernel_regularizer=regularizers.l2(0.01))(L4)
     H4_2 = AveragePooling2D(pool_size=POOL[0])(H4_1)
 
     # Concatenate parallel hidden layers
@@ -210,22 +213,23 @@ def build_crnn_model():
     R2 = Reshape((shape[1], shape[2]*shape[3]))(R1)
 
     # Recurrent layer
-    R3 = LSTM(32, return_sequences=True, dropout=0.3)(R2)
-    R4 = LSTM(32, return_sequences=False, dropout=0.3)(R3)
-    R5 = Dropout(0.1)(R4)
+    R3 = LSTM(64, return_sequences=True, dropout=0.3)(R2)
+    R4 = LSTM(64, return_sequences=False, dropout=0.3)(R3)
+    # R5 = Dropout(0.1)(R4)
 
     # # Flatten layer for dense layer
     # flattened = Flatten()(R5)
 
     # Output layer
-    L5 = Dense(32, activation=ACTIVATION)(R5)
-    L6 = Dense(16, activation=ACTIVATION)(L5)
-    L7 = Dropout(0.5)(L6)
+    # N1 = BatchNormalization()(R4)
+    L5 = Dense(64, activation=ACTIVATION)(R4)
+    L6 = Dense(32, activation=ACTIVATION)(L5)
+    L7 = Dropout(0.1)(L6)
     L8 = Dense(8, activation='softmax')(L7)
 
     model = Model(inputs=L1, outputs=L8)
 
-    model.compile(optimizers.Adam(),
+    model.compile(optimizers.rmsprop(lr=0.0015),
                   loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
