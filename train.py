@@ -9,7 +9,7 @@ import numpy as np
 from src import model
 from src import load_data_generators
 
-EPOCHS = 1000
+EPOCHS = 150
 
 def train():
     train, validation, test = load_data_generators.load_data_gen()
@@ -22,7 +22,7 @@ def train():
     STEP_SIZE_TRAIN = train.n // train.batch_size
     STEP_SIZE_VALID = validation.n // validation.batch_size
     
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=300)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
     mc = ModelCheckpoint('best_model.h5', monitor='val_accuracy', mode='max', verbose=1, save_best_only=True)
     
     #Cyclic Learning Rate https://github.com/bckenstler/CLR
