@@ -8,7 +8,7 @@ from keras.layers.recurrent import GRU, LSTM
 from keras import applications
 
 
-def build_model():
+def build_crnn_model_regular():
     N_CATEGORIES = 8
     BATCH_SIZE_TRAIN = 32
     BATCH_SIZE_TEST = 4
@@ -85,8 +85,51 @@ def build_model():
     
     return model
 
+def build_cnn_model_regular():
+    N_CATEGORIES = 8
+    BATCH_SIZE_TRAIN = 32
+    BATCH_SIZE_TEST = 32
+    INPUT_SHAPE = (256, 256, 3)  # x, y, color channels
+    IMAGE_SIZE = (256, 256)
+    KERNAL_SIZE = (3, 3)
+    POOL = (2, 2)
+    ACTIVATION = 'relu'
+    NUM_CONV_LAYERS = 3
+    FILTERS = [32, 64, 64, 128]
+    # Build CNN model
+    # Conv2D - feature extraction using filters (passing filter over sections of image)
+    # Dropout layer - randomly drop nodes; reduces overfitting
+    # Max Pooling - taking maximum value of "window" instead of all values within it; reduce data size
+    # Flatten layer - Converts n-dimension array to 1D array for NN
+
+    model = Sequential()
+
+    model.add(Conv2D(FILTERS[0], KERNAL_SIZE, padding='same',
+                    input_shape=INPUT_SHAPE))
+    model.add(Activation(ACTIVATION))
+    model.add(MaxPooling2D(pool_size=POOL))
+    model.add(Dropout(0.25))
+
+    for layer in range(NUM_CONV_LAYERS - 1):
+        model.add(Conv2D(FILTERS[layer + 1], KERNAL_SIZE, padding='same'))
+        model.add(Activation(ACTIVATION))
+        model.add(MaxPooling2D(pool_size=POOL))
+        model.add(Dropout(0.5))
+
+    model.add(Flatten())
+    model.add(Dense(512))
+    model.add(Activation(ACTIVATION))
+    model.add(Dropout(0.5))
+    model.add(Dense(N_CATEGORIES, activation='softmax'))
+
+    model.compile(optimizers.rmsprop(lr=0.0005, decay=1e-6),
+                loss="categorical_crossentropy", metrics=["accuracy"])
+    model.summary()
+
+    return model
+
 #https://www.isca-speech.org/archive/Interspeech_2019/pdfs/1298.pdf
-def build_parallel_model():
+def build_cnn_model_duplicated():
     N_CATEGORIES = 8
     BATCH_SIZE_TRAIN = 8
     BATCH_SIZE_TEST = 1
@@ -154,7 +197,7 @@ def build_parallel_model():
 
 
 
-def build_crnn_model():
+def build_crnn_model_duplicated():
     N_CATEGORIES = 8
     BATCH_SIZE_TRAIN = 32
     BATCH_SIZE_TEST = 8
