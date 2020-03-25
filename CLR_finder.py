@@ -5,15 +5,15 @@ from src import model
 from src import load_data_generators
 from src import clr_callback as clr
 
-GRAPH_EPOCH = 4
-BASE_LR = 0.0001
-MAX_LR = 0.1
+GRAPH_EPOCH = 2
+BASE_LR = 0.00001
+MAX_LR = 0.2
 
 def find_clr():
     train, validation, test = load_data_generators.load_data_gen()
 
     #Change the function call for other models in the file
-    crnn_model = model.build_model()
+    crnn_model = model.build_crnn_model()
     
     STEP_SIZE_TRAIN = train.n // train.batch_size
     
