@@ -7,21 +7,23 @@ from keras_preprocessing.image import ImageDataGenerator
 from keras.layers.recurrent import GRU, LSTM
 from keras import applications
 
+N_CATEGORIES = 8
+BATCH_SIZE_TRAIN = 32
+BATCH_SIZE_TEST = 4
+INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
+IMAGE_SIZE = (128, 128)
+frequency_axis = 1
+time_axis = 2
+channel_axis = 3
 
 def build_crnn_model_regular():
-    N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 32
-    BATCH_SIZE_TEST = 4
-    INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
-    IMAGE_SIZE = (128, 128)
+
     KERNAL_SIZE = [(3,3), (3,3), (3,3), (3, 3), (3,3), (3,3), (2,2)]
     POOL = [(2, 2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2), (2,2)]
     ACTIVATION = 'relu'
     NUM_CONV_LAYERS = 3
     FILTERS = [32, 64, 64, 32, 64, 128, 512]
-    frequency_axis = 1
-    time_axis = 2
-    channel_axis = 3
+    
 
     model = Sequential()
     # model.add(BatchNormalization(axis=frequency_axis,
@@ -72,10 +74,7 @@ def build_crnn_model_regular():
     model.add(Dense(16, activation=ACTIVATION))
     model.add(Dropout(0.2))
 
-    model.add(Dense(8))
-    # model.add(BatchNormalization())
-    model.add(Activation("softmax"))
-    #model.add(Dense(N_CATEGORIES, activation='softmax'))
+    model.add(Dense(N_CATEGORIES, activation='softmax'))
     # optimizers.rmsprop(lr=0.001, decay=1e-6)
     # Adam(lr=0.001, beta_1=0.5, beta_2=0.999)
     model.compile(optimizers.Adadelta(),
@@ -86,11 +85,6 @@ def build_crnn_model_regular():
     return model
 
 def build_cnn_model_regular():
-    N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 32
-    BATCH_SIZE_TEST = 32
-    INPUT_SHAPE = (256, 256, 3)  # x, y, color channels
-    IMAGE_SIZE = (256, 256)
     KERNAL_SIZE = (3, 3)
     POOL = (2, 2)
     ACTIVATION = 'relu'
@@ -130,11 +124,6 @@ def build_cnn_model_regular():
 
 #https://www.isca-speech.org/archive/Interspeech_2019/pdfs/1298.pdf
 def build_cnn_model_duplicated():
-    N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 8
-    BATCH_SIZE_TEST = 1
-    INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
-    IMAGE_SIZE = (128, 128)
     KERNAL_SIZE = [(7, 7), (5, 5), (4, 4), (4, 4), (4, 2),
                    (2, 4), (3, 3), (3, 3), (3, 3)]
     POOL = [(2, 2), (2, 2), (2, 2), (2, 2), (2, 2),
@@ -142,14 +131,6 @@ def build_cnn_model_duplicated():
     ACTIVATION = 'relu'
     NUM_CONV_LAYERS = 4
     FILTERS = [8, 16, 32, 64, 128, 256, 256]
-    frequency_axis = 1
-    time_axis = 2
-    channel_axis = 3
-
-    # Conv2D - feature extraction using filters (passing filter over sections of image)
-    # Dropout layer - randomly drop nodes; reduces overfitting
-    # Max Pooling - taking maximum value of "window" instead of all values within it; reduce data size
-    # Flatten layer - Converts n-dimension array to 1D array for NN
 
     # Input layer
     L1 = Input(shape=INPUT_SHAPE, name="input")
@@ -198,25 +179,12 @@ def build_cnn_model_duplicated():
 
 
 def build_crnn_model_duplicated():
-    N_CATEGORIES = 8
-    BATCH_SIZE_TRAIN = 32
-    BATCH_SIZE_TEST = 8
-    INPUT_SHAPE = (128, 128, 3)  # x, y, color channels
-    IMAGE_SIZE = (128, 128)
     KERNAL_SIZE = [(3, 3), (5, 5), (7, 7), (4, 4), (4, 2),
                    (2, 4), (3, 3), (3, 3), (3, 3)]
     POOL = [(2, 2), (2, 2), (2, 2), (2, 2), (2, 2),
             (2, 2), (2, 2), (2, 2), (2, 2)]
     ACTIVATION = 'relu'
     FILTERS = [4, 16, 16, 32, 128, 256, 256]
-    frequency_axis = 1
-    time_axis = 2
-    channel_axis = 3
-
-    # Conv2D - feature extraction using filters (passing filter over sections of image)
-    # Dropout layer - randomly drop nodes; reduces overfitting
-    # Max Pooling - taking maximum value of "window" instead of all values within it; reduce data size
-    # Flatten layer - Converts n-dimension array to 1D array for NN
 
     # Input layer
     L1 = Input(shape=INPUT_SHAPE, name="input")

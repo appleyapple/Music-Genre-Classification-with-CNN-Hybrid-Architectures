@@ -15,7 +15,7 @@ def train():
     train, validation, test = load_data_generators.load_data_gen()
 
     #Change the function call for other models in the file
-    crnn_model = model.build_crnn_model()
+    crnn_model = model.build_crnn_model_duplicated()
     
     csv_logger = CSVLogger('log.csv', append=False, separator=';')
 
