@@ -10,3 +10,5 @@ best_model.h5
 log.csv
 model.h5
 /SavedModels
+more_trained_earlystop.h5
+log_trainedmore.csv
