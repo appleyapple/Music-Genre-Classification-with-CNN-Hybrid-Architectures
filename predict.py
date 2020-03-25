@@ -3,9 +3,9 @@ from keras_preprocessing.image import ImageDataGenerator
 import pandas as pd
 import numpy as np
 
-model_file = './model.h5'
+model_file = './best_model.h5'
 BATCH_SIZE_TEST = 1
-IMAGE_SIZE = (256, 256)
+IMAGE_SIZE = (128, 128)
 
 def append_ext(fn):
     return fn+".jpg"
@@ -51,16 +51,22 @@ def predict():
     predictions = [labels[k] for k in predicted_class_indices]
 
     # Calculate test accuracy
-    count = 0
+    count = {"Hip-Hop": 0, "International": 0, "Rock": 0, "Experimental": 0, "Electronic": 0,
+                "Folk": 0, "Pop": 0, "Instrumental": 0}
     for i, genre in enumerate(predictions):
         if genre == testdf["Class"][i]:
-            count += 1
+            count[genre] += 1
 
     # Display results
-    print(testdf["Class"])
-    print(predictions[:])
-    print("Number of correct categorizations: ", count)
-    print("Test set accuracy: ", count/len(predictions))
+    print("Total Number of predictions:",len(predictions))
+
+    total = 0
+    for k in count.keys():
+        total += count[k]
+        print("Correct Categorization For {}: {}".format(k, count[k]))
+
+    print("Total Number of correct categorizations: ", total)
+    print("Test set accuracy: ", total/len(predictions))
 
 if __name__ == "__main__":
     predict()
