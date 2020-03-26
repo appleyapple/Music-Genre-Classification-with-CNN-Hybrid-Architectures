@@ -13,7 +13,7 @@ from matplotlib import figure
 
 def create_spectrogram(filename, id, folder, WIDTH, HEIGHT, DPI, SONG_DURATION, SR):
     plt.interactive(False)
-    clip, sample_rate = librosa.load(filename, sr = SR, duration = SONG_DURATION)
+    clip, sample_rate = librosa.load(filename, sr=SR, duration = SONG_DURATION)
     fig = plt.figure(figsize=[WIDTH, HEIGHT], dpi=DPI)
     ax = fig.add_subplot(111)
     ax.axes.get_xaxis().set_visible(False)
@@ -29,12 +29,12 @@ def create_spectrogram(filename, id, folder, WIDTH, HEIGHT, DPI, SONG_DURATION, 
     elif folder == "test":
         filename  = './Data/Test/' + id + '.jpg'
         plt.savefig(filename, bbox_inches='tight',pad_inches=0)
-    else:
+    elif folder =="train":
         filename  = './Data/Train/' + id + '.jpg'
         plt.savefig(filename, bbox_inches='tight',pad_inches=0)
-    # else:
-    #     filename  = './Data/Validate/' + id + '.jpg'
-    #     plt.savefig(filename, bbox_inches='tight',pad_inches=0)
+    else:
+        filename  = './Data/Validate/' + id + '.jpg'
+        plt.savefig(filename, bbox_inches='tight',pad_inches=0)
     plt.close()    
     fig.clf()
     plt.close(fig)
@@ -59,11 +59,10 @@ def Spectrogram_Create(WIDTH, HEIGHT, DPI, SONG_DURATION, SR):
         os.mkdir("Data/Test")
     except:
         print("Data/Test folder exists, skip creation")
-
-    # try:
-    #     os.mkdir("Data/Validate")
-    # except:
-    #     print("Data/Validate folder exists, skip creation")
+    try:
+        os.mkdir("Data/Validate")
+    except:
+        print("Data/Validate folder exists, skip creation")
 
     data_set = tracks['set', 'split']
     
@@ -83,8 +82,11 @@ def Spectrogram_Create(WIDTH, HEIGHT, DPI, SONG_DURATION, SR):
                 if(tracks['set', 'split'][int(id)] == "test"):
                     create_spectrogram(full_path, id, "test", 
                                         WIDTH, HEIGHT, DPI, SONG_DURATION, SR)
-                else:
+                elif(tracks['set', 'split'][int(id)] == "training"):
                     create_spectrogram(full_path, id, "train",
+                                        WIDTH, HEIGHT, DPI, SONG_DURATION, SR)
+                else:
+                    create_spectrogram(full_path, id, "validate",
                                         WIDTH, HEIGHT, DPI, SONG_DURATION, SR)
 
             print("Finished creating spectrograms for {} genre".format(path_list[2]))

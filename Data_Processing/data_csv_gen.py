@@ -32,7 +32,7 @@ def Generate_CSV():
 
 
     df_train = pd.DataFrame(columns=['ID', 'Genre'])
-    # df_validation = pd.DataFrame(columns=['ID', 'Genre'])
+    df_validation = pd.DataFrame(columns=['ID', 'Genre'])
     df_test = pd.DataFrame(columns=['ID', 'Genre'])
 
     for id in data_top.index:
@@ -43,14 +43,15 @@ def Generate_CSV():
             if(tracks['set', 'split'][id] == "test"):
                 print("Adding Testing Data", id)
                 df_test = df_test.append({'ID': id, 'Genre': tracks['track', 'genre_top'][id]}, ignore_index = True)
-            else:
+            elif(tracks['set', 'split'][id] == "training"):
                 print("Adding Training Data", id)
                 df_train = df_train.append({'ID': id, 'Genre': tracks['track', 'genre_top'][id]}, ignore_index = True)
-                # print("Adding Validation Data", id)
-                # df_validation = df_validation.append({'ID': id, 'Genre': tracks['track', 'genre_top'][id]}, ignore_index = True)
+            else:
+                print("Adding Validation  Data", id)
+                df_validation= df_validation.append({'ID': id, 'Genre': tracks['track', 'genre_top'][id]}, ignore_index = True)
 
     df_train.to_csv('Data/train.csv', encoding='utf-8', index= False, header=False)
-    # df_validation.to_csv('Data/validate.csv', encoding='utf-8', index= False, header=False)
+    df_validation.to_csv('Data/validate.csv', encoding='utf-8', index= False, header=False)
     df_test.to_csv('Data/test.csv', encoding='utf-8', index= False, header=False)
 
     print("Completed CSV generation, check the ./Data folder for your .csv")
